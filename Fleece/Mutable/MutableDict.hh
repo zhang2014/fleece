@@ -45,6 +45,9 @@ namespace fleece { namespace impl {
             Or if the value is already a MutableDict, just returns it. Else returns null. */
         MutableDict* getMutableDict(slice key)          {return heapDict()->getMutableDict(key);}
 
+        RefCounted* extra() const                       {return heapDict()->extra();}
+        void setExtra(RefCounted *extra)                {heapDict()->setExtra(extra);}
+
         using iterator = internal::HeapDict::iterator;
     };
     

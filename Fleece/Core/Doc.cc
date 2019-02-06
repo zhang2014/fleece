@@ -130,6 +130,8 @@ namespace fleece { namespace impl {
 
 
     /*static*/ const Scope* Scope::containing(const Value *v) noexcept {
+        if (v->isMutable())
+            return nullptr;
         lock_guard<mutex> lock(sMutex);
         return _containing(v);
     }

@@ -57,6 +57,9 @@ namespace fleece { namespace impl {
             Or if the item is already a HeapDict, just returns it. Else returns null. */
         MutableDict* getMutableDict(uint32_t i)     {return heapArray()->getMutableDict(i);}
 
+        RefCounted* extra() const                       {return heapArray()->extra();}
+        void setExtra(RefCounted *extra)                {heapArray()->setExtra(extra);}
+
         using iterator = internal::HeapArray::iterator;
     };
     

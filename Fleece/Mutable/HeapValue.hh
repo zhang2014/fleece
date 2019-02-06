@@ -7,6 +7,7 @@
 #pragma once
 #include "Value.hh"
 #include "RefCounted.hh"
+#include <memory>
 
 namespace fleece { namespace impl {
 
@@ -68,7 +69,6 @@ namespace fleece { namespace impl {
         };
 
 
-
         /** Abstract base class of Heap{Array,Dict}. */
         class HeapCollection : public HeapValue {
         public:
@@ -86,8 +86,12 @@ namespace fleece { namespace impl {
 
             void setChanged(bool c)                         {_changed = c;}
 
+            RefCounted* extra() const                       {return _extra;}
+            void setExtra(RefCounted *extra)                {_extra = extra;}
+
         private:
             bool _changed {false};
+            Retained<RefCounted> _extra;
         };
 
     } // end internal namespace
