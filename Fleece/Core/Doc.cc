@@ -21,6 +21,8 @@
 #include "Pointer.hh"
 #include "JSONConverter.hh"
 #include "FleeceException.hh"
+#include "MutableDict.hh"
+#include "MutableArray.hh"
 #include <functional>
 #include <mutex>
 #include <set>
@@ -115,6 +117,19 @@ namespace fleece { namespace impl {
     }
 
 
+    static const Value* resolveMutable(const Value *value) {
+        if (_usuallyFalse(value->isMutable())) {
+            // Scope doesn't know about mutable Values (they're in the heap), but the mutable
+            // Value may be a mutable copy of a Value with scope...
+            if (value->asDict())
+                value = value->asDict()->asMutable()->source();
+            else
+                value = value->asArray()->asMutable()->source();
+        }
+        return value;
+    }
+
+
     /*static*/ const Scope* Scope::_containing(const Value *src) noexcept {
         // must have sMutex to call this
         if (_usuallyFalse(!sMemoryMap))
@@ -130,7 +145,8 @@ namespace fleece { namespace impl {
 
 
     /*static*/ const Scope* Scope::containing(const Value *v) noexcept {
-        if (v->isMutable())
+        v = resolveMutable(v);
+        if (!v)
             return nullptr;
         lock_guard<mutex> lock(sMutex);
         return _containing(v);
@@ -211,6 +227,9 @@ namespace fleece { namespace impl {
 
 
     /*static*/ RetainedConst<Doc> Doc::containing(const Value *src) noexcept {
+        src = resolveMutable(src);
+        if (!src)
+            return nullptr;
         lock_guard<mutex> lock(sMutex);
         Doc *scope = (Doc*) _containing(src);
         if (!scope)
