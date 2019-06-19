@@ -27,6 +27,10 @@
 #include <memory>
 #include <assert.h>
 
+#if __cplusplus >= 201700L
+#include <string_view>
+#endif
+
 #ifdef __OBJC__
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
@@ -119,6 +123,10 @@ namespace fleece {
         std::string hexString() const;
         std::string base64String() const;
 
+#if __cplusplus >= 201700L
+        operator std::string_view() const           {return std::string_view((const char*)buf, size);}
+#endif
+
         /** Copies into a C string buffer of the given size. Result is always NUL-terminated and
             will not overflow the buffer. Returns false if the slice was truncated. */
         bool toCString(char *buf, size_t bufSize);
@@ -192,10 +200,13 @@ namespace fleece {
         constexpr slice(const void* b, size_t s)    :pure_slice(b, s) {}
         constexpr slice(const void* start NONNULL, const void* end NONNULL)
                                                     :slice(start, (uint8_t*)end-(uint8_t*)start){}
-
         inline constexpr slice(const alloc_slice&);
+
         slice(const std::string& str)               :slice(&str[0], str.length()) {}
         explicit constexpr slice(const char* str)   :slice(str, str ? strlen(str) : 0) {}
+#if __cplusplus >= 201700L
+        constexpr slice(std::string_view str)       :slice(str.data(), str.length()) {}
+#endif
 
         slice& operator=(pure_slice s)              {set(s.buf, s.size); return *this;}
         slice& operator= (alloc_slice&&) =delete;   // Disallowed: might lead to ptr to freed buf
@@ -288,6 +299,11 @@ namespace fleece {
             retain();
         }
 
+#if __cplusplus >= 201700L
+        explicit alloc_slice(std::string_view str)          :alloc_slice(slice(str)) {}
+        explicit alloc_slice(const char *str)               :alloc_slice(slice(str)) {} // disambiguation
+#endif
+
         ~alloc_slice()                                      {if (buf) release();}
         alloc_slice(const alloc_slice&) noexcept;
         alloc_slice& operator=(const alloc_slice&) noexcept;
@@ -322,6 +338,10 @@ namespace fleece {
         // disambiguation:
         alloc_slice& operator=(const char *str NONNULL)     {*this = (slice)str; return *this;}
         alloc_slice& operator=(const std::string &str)      {*this = (slice)str; return *this;}
+
+#if __cplusplus >= 201700L
+        alloc_slice& operator=(std::string_view str)        {*this = (slice)str; return *this;}
+#endif
 
         alloc_slice& retain() noexcept;
         void release() noexcept;
