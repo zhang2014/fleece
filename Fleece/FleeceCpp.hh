@@ -261,7 +261,7 @@ namespace fleeceapi {
 
         AllocedDict(const AllocedDict &d)
         :Dict(d)
-        ,alloc_slice(d)
+        ,alloc_slice(static_cast<const fleece::alloc_slice &>(d))
         { }
 
         const alloc_slice& data() const                 {return *this;}
@@ -450,3 +450,4 @@ namespace fleeceapi {
     inline FLError Encoder::error() const       {return FLEncoder_GetError(_enc);}
     inline const char* Encoder::errorMessage() const {return FLEncoder_GetErrorMessage(_enc);}
 }
+
